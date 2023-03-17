@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <math.h>
 #include <algorithm>
 
 using namespace std;
@@ -34,8 +35,19 @@ void fillMatrix(vector<vector<double>> &matrix) {
 }
 
 
-void replaceRow(vector<vector<double>> &matrix) {
+void replaceRow(vector<vector<double>> &matrix, int row, int col,
+                int rowCount=4, int colCount=5) {
 
+    for (int index = row + 1; index < rowCount; index++) {
+        if (matrix[index][col] != 0.0) {
+            vector<double> tmp = matrix[row];
+            matrix[row] = matrix[index];
+            matrix[index] = tmp;
+            return;
+        }
+    }
+
+    throw std::invalid_argument("Input matrix is degenerate... det(matrix) = 0!");
 }
 
 
@@ -44,7 +56,7 @@ void firstStep(vector<vector<double>> &matrix, int rowCount = 4, int colCount = 
     int col = 0;
     while (row < rowCount - 1) {
         // Check first element; Replace row if element is 0;
-         if (matrix[row][col] == 0.0) { replaceRow(matrix); }
+         if (matrix[row][col] == 0.0) { replaceRow(matrix, row, col); }
 
         for (int index1 = row + 1; index1 < rowCount; index1++) {
             double koeff = (double)matrix[index1][col] / (double)matrix[row][col];
@@ -121,8 +133,25 @@ void printResult(vector<double> result, int size) {
 }
 
 
+void printCheckX(vector<vector<double>> matrix, vector<double> result) {
+    cout << "\nCheck x0, x1, ... xn:" << endl;
+
+    for (int row = 0; row < matrix.size(); row++) {
+        double res = 0.0;
+
+        for (int col = 0; col < matrix[row].size() - 1; col++) {
+            cout << " + " << "(" << result[col] << ")" << "*" << matrix[row][col];
+            res += result[col]*matrix[row][col];
+        }
+
+        cout << " = " << round(res) << endl;
+    }
+}
+
+
 int main() {
     vector<vector<double>> matrix = vector<vector<double>>();
+    vector<vector<double>> inputMatrix = vector<vector<double>>();
 //    fillMatrix(matrix);
 
     vector<double> row1 = vector<double>();
@@ -157,18 +186,27 @@ int main() {
     row4.push_back(1.0);
     matrix.push_back(row4);
 
+    inputMatrix = matrix;
 
-    cout << "\nInput matrix:" << endl;
+    cout << "\nYoure Input matrix:" << endl;
     printMatrix(matrix);
 
     cout << "Worked firstStep function:" << endl;
-    firstStep(matrix);
+    try {
+        firstStep(matrix);
+    }
+
+    catch (std::invalid_argument &exc) {
+        cout << exc.what() << endl;
+    }
 
 
     vector<double> result = secondStep(matrix);
 
     cout << "Result (X1, X2, X3, X4):";
     printResult(result);    
+
+    printCheckX(inputMatrix, result);
 
     return 0;
 }
